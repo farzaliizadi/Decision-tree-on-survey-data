@@ -1,0 +1,81 @@
+getwd()
+setwd('D:/Documents/statistics')
+survey <- read.csv("survey.csv", stringsAsFactors = F)
+dim(survey)
+head(survey)
+str(survey)
+tbl <- xtabs(~ Sex + Smoke, data=survey)
+tbl
+sum(tbl)
+margin.table(tbl, margin=1)
+sum(tbl[1,]) / sum(tbl)
+sum(tbl[2,]) / sum(tbl)
+library(ggplot2)
+names(survey)
+head(survey)
+df <- survey[-c(1,2,5,6,8,9,12)]
+head(df)
+is.na(df)
+#df <- na.exclude(df)
+sum(is.na(df))
+dim(df)
+# identify location of NAs in vector
+which(is.na(x))
+# identify NAs in specific data frame column
+is.na(df$Pulse)
+colSums(is.na(df))
+df_Wr.Hnd_mean <- mean(df$Wr.Hnd, na.rm=T)
+df$Wr.Hnd[is.na(df$Wr.Hnd)] <- df_Wr.Hnd_mean 
+sum(is.na(df$Wr.Hnd))
+df_NW.Hnd_mean <- mean(df$NW.Hnd, na.rm=T)
+df$NW.Hnd[is.na(df$NW.Hnd)] <- df_NW.Hnd_mean 
+sum(is.na(df$NW.Hnd))
+df_Pulse_mean <- mean(df$Pulse, na.rm = TRUE)        # Calculate mean
+df$Pulse[is.na(df$Pulse)] <- df_Pulse_mean   # Replace by mean
+sum(is.na(df$Pulse))
+df_Height_mean <- mean(df$Height, na.rm=T)
+df$Height[is.na(df$Heigh)] <- df_Height_mean 
+sum(is.na(df$Height))
+colSums(is.na(df))
+which(is.na(df$Smoke))
+df = df[-c(70),]
+dim(df)
+sum(is.na(df))
+str(df)
+head(df)
+df$Smoke <- as.factor(df$Smoke)
+#Smoke-Levels: Heavy Never Occas Regul
+set.seed(1234)
+pd <- sample(2, nrow(df), replace = T, prob =c(0.8,0.2))
+train <- df[pd==1,]
+dim(train)
+test <- df[pd==2,]
+dim(test)
+#Decision tree with party
+library(party)
+tree <- ctree(df$Smoke~. , data=train)
+print(tree)
+plot(tree)
+#or we can do. in this tree only LB, AC, FM branches. If we add more, 
+#tree will be larger
+tree1 <- ctree(df$Smoke~., data=train, controls=ctree_control(mincriterion=0.9, minsplit=50))
+#since the data is small, this doesn't make any difference.
+print(tree1)
+plot(tree1)
+plot(tree,type="simple")
+predict(tree,test, type='prob')
+# gives 4 probs for each rows in validate
+predict(tree, test)
+#gives 1, 2, 3, 4  as Smoke levels
+#Misclassification error the same as confution matrix
+# rows predict and columns actuals
+tab<-table(predict(tree), train$Smoke)
+print(tab)
+sum(diag(tab))/sum(tab)
+1-sum(diag(tab))/sum(tab)
+#Missclassification error with validate data
+testPred<-predict(tree, newdata = test)
+tab <- table(testPred, test$Smoke)
+print(tab) # Confusion Matrix
+sum(diag(tab))/sum(tab)
+1-sum(diag(tab))/sum(tab)
